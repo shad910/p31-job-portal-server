@@ -26,10 +26,17 @@ app.get("/", (req, res) => {
 
 const run = async () => {
     try {
-        
+        const jobPortal = client.db("jobPortal");
+        const jobsCollection = jobPortal.collection("jobs");
+
+        app.get("/jobs", async (req, res) => {    
+            const result = await jobsCollection.find().toArray();
+            res.send(result);
+        });
+
         console.log("You successfully connected to MongoDB!");
     } finally {
-        
+
     }
 }
 run().catch(console.dir);
