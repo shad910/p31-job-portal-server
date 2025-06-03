@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 const uri = process.env.MDB_URI;
 
@@ -29,8 +29,17 @@ const run = async () => {
         const jobPortal = client.db("jobPortal");
         const jobsCollection = jobPortal.collection("jobs");
 
+        // Jobs API
         app.get("/jobs", async (req, res) => {    
             const result = await jobsCollection.find().toArray();
+            res.send(result);
+        });
+
+        // Job Detail API
+        app.get("/jobs/:id", async (req, res) => {   
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }; 
+            const result = await jobsCollection.findOne(query);
             res.send(result);
         });
 
