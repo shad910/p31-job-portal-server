@@ -21,7 +21,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-    res.send("Server is running")
+    res.send("CAREER-CODE server is running...........")
 });
 
 const run = async () => {
@@ -51,5 +51,5 @@ const run = async () => {
 run().catch(console.dir);
 
 app.listen(port, () => {
-    console.log(`Server is running on this ${port} port.`)
+    console.log(` CAREER-CODE server is running on this ${port} port.`)
 })
