@@ -27,7 +27,14 @@ app.get("/", (req, res) => {
 const run = async () => {
     try {
         const jobPortal = client.db("jobPortal");
+        const categoryCollection = jobPortal.collection("category");
         const jobsCollection = jobPortal.collection("jobs");
+
+        // Category API
+        app.get("/category", async (req, res) => {    
+            const result = await categoryCollection.find().toArray();
+            res.send(result);
+        });
 
         // Jobs API
         app.get("/jobs", async (req, res) => {    
