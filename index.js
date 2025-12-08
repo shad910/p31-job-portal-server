@@ -28,11 +28,11 @@ const run = async () => {
     try {
         // await client.connect();
         const jobPortal = client.db("jobPortal");
-        const categoryCollection = jobPortal.collection("category");
+        const categoryCollection = jobPortal.collection("categories");
         const jobsCollection = jobPortal.collection("jobs");
 
-        // Category API
-        app.get("/category", async (req, res) => {
+        // Categories API
+        app.get("/categories", async (req, res) => {
             try {
                 const result = await categoryCollection.find().toArray();
                 res.status(200).send(result).json({ success: true, result });
