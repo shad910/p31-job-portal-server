@@ -27,11 +27,14 @@ app.get("/", (req, res) => {
 const run = async () => {
     try {
         // await client.connect();
+        console.log("You successfully connected to MongoDB!");
+
         const jobPortal = client.db("jobPortal");
         const categoryCollection = jobPortal.collection("categories");
         const jobsCollection = jobPortal.collection("jobs");
+        const applicationCollection = jobPortal.collection("applications");
 
-        // Categories API
+        // Categories GET API
         app.get("/categories", async (req, res) => {
             try {
                 const result = await categoryCollection.find().toArray();
@@ -41,7 +44,7 @@ const run = async () => {
             }
         });
 
-        // Jobs API
+        // Job Detail GET API
         app.get("/jobs", async (req, res) => {
             try {
                 const result = await jobsCollection.find().toArray();
@@ -52,7 +55,7 @@ const run = async () => {
             }
         });
 
-        // Job Detail API
+        // Job Detail GET API with ID
         app.get("/jobs/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -65,7 +68,7 @@ const run = async () => {
             }
         });
 
-        // Add a Job Details API
+        // Job Details POST API
         app.post("/jobs", async (req, res) => {
             try {
                 const data = req.body;
@@ -77,7 +80,7 @@ const run = async () => {
             }
         });
 
-        //Update Job Details API
+        //Job Details UPDATE(PATCH) API with ID
         app.patch("/jobs/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -95,7 +98,7 @@ const run = async () => {
             }
         });
 
-        //Delete Job Details API
+        // Job Details DELETE API with ID
         app.delete("/job/:id", async (req, res) => {
             try {
                 const id = req.params.id;
@@ -112,8 +115,63 @@ const run = async () => {
             }
         });
 
+        // Application GET API with Query(Email)
+        app.get("/applications", async (req, res) => {
+            try {
+                const email = req.query.email;
+                const query = { applicant: email };
+                const result = await applicationCollection.find(query).toArray();
 
-        console.log("You successfully connected to MongoDB!");
+                // bad way to aggregate data
+                for (const application of result) {
+                    const jobID = application.jobID;
+                    const jobQuery = { _id: new ObjectId(jobID) }
+                    const job = await jobsCollection.findOne(jobQuery);
+                    application.company_logo = job.company_logo
+                    application.company = job.company
+                    application.location = job.location
+                    application.title = job.title
+                    application.jobType = job.jobType
+                    application.salaryRange = job.salaryRange
+                }
+
+                res.status(200).send(result).json({ success: true, result });
+
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Application POST API
+        app.post("/applications", async (req, res) => {
+            try {
+                const data = req.body;
+                console.log(data);
+                const result = await applicationCollection.insertOne(data);
+                res.status(200).json({ success: true, result });
+
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
+        // Application Details DELETE API with ID
+        app.delete("/applications/:id", async (req, res) => {
+            try {
+                const id = req.params.id;
+                const query = { _id: new ObjectId(id) };
+                const result = await applicationCollection.deleteOne(query);
+
+                if (result.deletedCount === 1) {
+                    res.status(200).json({ success: true, message: "Job deleted successfully" });
+                } else {
+                    res.status(404).json({ success: false, message: "Job not found" });
+                }
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        });
+
     } finally {
 
     }
