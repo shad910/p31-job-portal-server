@@ -47,7 +47,14 @@ const run = async () => {
     // Job Detail GET API
     app.get("/jobs", async (req, res) => {
       try {
-        const result = await jobsCollection.find().toArray();
+        const email = req.query.email;
+        const query = {};
+
+        if (email) {
+          query.hr_email = email;
+        }
+
+        const result = await jobsCollection.find(query).toArray();
         res.status(200).send(result);
       } catch (error) {
         res.status(500);
@@ -137,6 +144,18 @@ const run = async () => {
       }
     });
 
+    // Application GET API with Job ID
+    app.get("/applications/job/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        const query = { jobID: id };
+        const result = await applicationCollection.find(query).toArray();
+        res.status(200).send(result);
+      } catch (error) {
+        res.status(500);
+      }
+    });
+
     // Application POST API
     app.post("/applications", async (req, res) => {
       try {
@@ -147,6 +166,22 @@ const run = async () => {
       } catch (error) {
         res.status(500);
       }
+    });
+
+    app.patch("/applications/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const status = req.body.status;
+      if (!status) {
+        return res.status(400);
+      }
+      const updateDoc = {
+        $set: {
+          status: status,
+        },
+      };
+      const result = await applicationCollection.updateOne(filter, updateDoc);
+      res.status(200).send(result);
     });
 
     // Application Details DELETE API with ID
