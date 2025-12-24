@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const uri = process.env.MDB_URI;
@@ -33,6 +34,13 @@ const run = async () => {
     const categoryCollection = jobPortal.collection("categories");
     const jobsCollection = jobPortal.collection("jobs");
     const applicationCollection = jobPortal.collection("applications");
+
+    // Json Web Token related API
+    app.post("/jwt", async (req, res) => {
+      const email = req.body;
+      const token = jwt.sign(email, "secret", { expiresIn: "5h" });
+      res.send({ token });
+    });
 
     // Categories GET API
     app.get("/categories", async (req, res) => {
@@ -118,30 +126,50 @@ const run = async () => {
       }
     });
 
-    // Application GET API with Query(Email)
+    // Application GET API with Query(Email or ID)
     app.get("/applications", async (req, res) => {
       try {
         const email = req.query.email;
-        const query = { applicant: email };
+        const id = req.query.id;
+
+        let query = {};
+        if (email) {
+          query.applicant = email;
+        } else if (id) {
+          query._id = new ObjectId(id);
+        }
+
         const result = await applicationCollection.find(query).toArray();
 
-        // bad way to aggregate data
+        // bad way to aggregate data (Keeping your original logic)
         for (const application of result) {
           const jobID = application.jobID;
           const jobQuery = { _id: new ObjectId(jobID) };
           const job = await jobsCollection.findOne(jobQuery);
-          application.company_logo = job.company_logo;
-          application.company = job.company;
-          application.location = job.location;
-          application.title = job.title;
-          application.jobType = job.jobType;
-          application.salaryRange = job.salaryRange;
+
+          if (job) { // Added a check to prevent errors if job is missing
+            application.company_logo = job.company_logo;
+            application.company = job.company;
+            application.location = job.location;
+            application.title = job.title;
+            application.jobType = job.jobType;
+            application.salaryRange = job.salaryRange;
+          }
         }
 
         res.status(200).send(result);
       } catch (error) {
-        res.status(500);
+        console.error(error);
+        res.status(500).send({ message: "Error fetching applications" });
       }
+    });
+
+    // Application GET API with Application ID
+    app.get("/applications/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await applicationCollection.findOne(query);
+      res.status(200).send(result);
     });
 
     // Application GET API with Job ID
@@ -168,20 +196,19 @@ const run = async () => {
       }
     });
 
+    // Application PATCH API with ID
     app.patch("/applications/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
-      const status = req.body.status;
-      if (!status) {
+      const count = req.body;
+      
+      if (!count) {
         return res.status(400);
-      }
-      const updateDoc = {
-        $set: {
-          status: status,
-        },
       };
+
+      const updateDoc = { $set: count };
       const result = await applicationCollection.updateOne(filter, updateDoc);
-      res.status(200).send(result);
+      return res.status(200).send(result);
     });
 
     // Application Details DELETE API with ID
