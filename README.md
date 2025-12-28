@@ -68,3 +68,5 @@ Steps for contributing:
 
 ## License
 [Specify your license, e.g., MIT, Apache 2.0]
+
+require('crypto').randomBytes(64).toString('hex')
