@@ -5,7 +5,9 @@ const cookieParser = require("cookie-parser")
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 const admin = require("firebase-admin");
-const serviceAccount = require("./firebase-admin.json");
+const { json } = require("express");
+const decoded = Buffer.from(process.env.FB_SERVICE_KEY, 'base64').toString('utf8');
+const serviceAccount = JSON.parse(decoded);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
@@ -27,7 +29,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: ['http://localhost:5173', 'https://p31-job-portal-client-8825a.web.app'],
   credentials: true
 }));
 app.use(cookieParser());
@@ -35,13 +37,13 @@ app.use(express.json());
 
 const verifyToken = async (req, res, next) => {
   const token = req?.cookies?.token;
-  const secret = process.env.JWT_Secret
+  const secret = process.env.JWT_SECRET
 
   if (!token) {
     return res.status(401).send({ message: 'unauthorized access' });
   }
 
-  console.log("Server verifyToken inside: ", token);
+  // console.log("Server verifyToken inside: ", token);
 
 
   // JWT Token Verify
@@ -50,7 +52,7 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).send({ message: 'unauthorized access' });
     };
 
-    console.log(decoded);
+    // console.log(decoded);
     req.decoded = decoded;
 
     next();
@@ -60,17 +62,17 @@ const verifyToken = async (req, res, next) => {
 const verifyFirebaseToken = async (req, res, next) => {
   const authHeader = req?.headers?.authorization;
   if (!authHeader) {
-    return res.status(401).send({ message: `unauthorized `})
+    return res.status(401).send({ message: `unauthorized` })
   }
   const token = authHeader.split(" ")[1];
-  console.log(`token in the middleware: `, token);
+  // console.log(`token in the verifyFirebaseToken middleware: `, token);
   try {
     const decoded = await admin.auth().verifyIdToken(token);
-    console.log(`Decoded Token: `, decoded);
+    // console.log(`verifyFirebaseToken Decoded Token: `, decoded);
 
     req.decoded = decoded;
     next();
-    
+
   } catch (error) {
     res.status(401).send({ message: `unauthorized` })
   }
@@ -85,7 +87,7 @@ app.get("/", (req, res) => {
 const run = async () => {
   try {
     // await client.connect();
-    console.log("You successfully connected to MongoDB!");
+    // console.log("You successfully connected to MongoDB!");
 
     const jobPortal = client.db("jobPortal");
     const categoryCollection = jobPortal.collection("categories");
@@ -190,45 +192,42 @@ const run = async () => {
     });
 
     // Application GET API with Query(Email or ID)
-    app.get("/applications", verifyToken, verifyFirebaseToken, async (req, res) => {
-      try {
-        const email = req.query.email;
-        const id = req.query.id;
+    app.get("/applications", verifyFirebaseToken, async (req, res) => {
 
-        if (email !== req.decoded.email) {
-          return res.status(403).send({ message: forbidden });
-        }
+      const email = req.query.email;
+      const id = req.query.id;
 
-        let query = {};
-        if (email) {
-          query.applicant = email;
-        } else if (id) {
-          query._id = new ObjectId(id);
-        }
+      // console.log(req.decoded.email)
 
-        const result = await applicationCollection.find(query).toArray();
-
-        // bad way to aggregate data (Keeping your original logic)
-        for (const application of result) {
-          const jobID = application.jobID;
-          const jobQuery = { _id: new ObjectId(jobID) };
-          const job = await jobsCollection.findOne(jobQuery);
-
-          if (job) { // Added a check to prevent errors if job is missing
-            application.company_logo = job.company_logo;
-            application.company = job.company;
-            application.location = job.location;
-            application.title = job.title;
-            application.jobType = job.jobType;
-            application.salaryRange = job.salaryRange;
-          }
-        }
-        res.status(200).send(result);
-
-      } catch (error) {
-        console.error(error);
-        res.status(403).send({ message: forbidden });
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden" });
       }
+
+      let query = {};
+      if (email) {
+        query.applicant = email;
+      } else if (id) {
+        query._id = new ObjectId(id);
+      }
+
+      const result = await applicationCollection.find(query).toArray();
+
+      // bad way to aggregate data (Keeping your original logic)
+      for (const application of result) {
+        const jobID = application.jobID;
+        const jobQuery = { _id: new ObjectId(jobID) };
+        const job = await jobsCollection.findOne(jobQuery);
+
+        if (job) { // Added a check to prevent errors if job is missing
+          application.company_logo = job.company_logo;
+          application.company = job.company;
+          application.location = job.location;
+          application.title = job.title;
+          application.jobType = job.jobType;
+          application.salaryRange = job.salaryRange;
+        }
+      }
+      res.status(200).send(result);
     });
 
     // Application GET API with Application ID
@@ -259,7 +258,7 @@ const run = async () => {
     app.post("/applications", async (req, res) => {
       try {
         const data = req.body;
-        console.log(data);
+        // console.log(data);
         const result = await applicationCollection.insertOne(data);
         res.status(200).send(result);
       } catch (error) {
@@ -308,5 +307,6 @@ const run = async () => {
 run().catch(console.dir);
 
 app.listen(port, () => {
-  console.log(` CAREER-CODE server is running on this ${port} port.`);
+  port
+  // console.log(` CAREER-CODE server is running on this ${port} port.`);
 });

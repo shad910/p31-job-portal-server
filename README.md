@@ -44,6 +44,9 @@ List key endpoints here:
 ## Authentication
 Describe how authentication works (e.g., JWT, OAuth, etc.) and how to set it up.
 
+## Secret
+require('crypto').randomBytes(64).toString('hex')
+
 ## Database Schema
 Provide an overview of the database structure or link to a schema file.
 
@@ -68,5 +71,3 @@ Steps for contributing:
 
 ## License
 [Specify your license, e.g., MIT, Apache 2.0]
-
-require('crypto').randomBytes(64).toString('hex')
