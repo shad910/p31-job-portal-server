@@ -1,73 +1,151 @@
-# Backend Project
+# CAREER-CODE Server
 
-## Description
-A brief overview of what this backend does. (Replace this with your project’s purpose and functionality.)
+This repository contains the **backend server** for the CAREER-CODE Job Portal application. The project is built with the following technologies:
+
+- **Node.js**
+- **Express**
+- **MongoDB**
+- **Firebase Admin**
+- **JWT authentication**
+
+Server Link: [https://p31-job-portal-server.vercel.app/](https://p31-job-portal-server.vercel.app/)
+
+---
+
+## Features
+
+- **User Authentication**
+  - JWT-based authentication for sessions.
+  - Firebase token verification for secure API access.
+  
+- **Job Management**
+  - CRUD operations for job postings.
+  - Retrieve job details by ID or HR email.
+
+- **Category Management**
+  - Fetch job categories.
+
+- **Application Management**
+  - CRUD operations for job applications.
+  - Application data aggregation with job details.
+  - Query applications by applicant email or job ID.
+
+- **Security**
+  - CORS configuration for trusted origins.
+  - HTTP-only cookies for JWT.
+  - Authorization middleware for protected routes.
+
+---
 
 ## Technologies Used
-- **Language**: [e.g., Node.js, Python, Java]
-- **Framework**: [e.g., Express, Django, Spring]
-- **Database**: [e.g., MongoDB, PostgreSQL, MySQL]
-- **Other Tools**: [e.g., Docker, Redis]
 
-## Installation Instructions
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
-2. Navigate to the project directory:
-   ```bash
-   cd <project-directory>
-   ```
-3. Install dependencies:
-   ```bash
-   npm install  # For Node.js, replace with your package manager command
-   ```
+- [Node.js](https://nodejs.org/)
+- [Express](https://expressjs.com/)
+- [MongoDB](https://www.mongodb.com/)
+- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
+- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+- [dotenv](https://www.npmjs.com/package/dotenv)
+- [cors](https://www.npmjs.com/package/cors)
+- [cookie-parser](https://www.npmjs.com/package/cookie-parser)
 
-## Configuration
-- Copy the example environment file and update it with your settings:
-  ```bash
-  cp .env.example .env
-  ```
-- Edit `.env` with your database credentials, API keys, etc.
+---
 
-## Running the Application
-Start the backend server:
-```bash
-npm start  # Replace with your start command
+## Environment Variables
+
+Create a `.env` file in the root directory with the following keys:
+
+```env
+PORT=5000
+MDB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
+FB_SERVICE_KEY=your_firebase_service_key_base64_encoded
 ```
 
-## API Documentation
-List key endpoints here:
-- `GET /api/example` - Fetches example data
-- `POST /api/example` - Creates a new example
+---
 
-## Authentication
-Describe how authentication works (e.g., JWT, OAuth, etc.) and how to set it up.
+## Installation
 
-## Secret
-require('crypto').randomBytes(64).toString('hex')
+1. Clone the repository:
 
-## Database Schema
-Provide an overview of the database structure or link to a schema file.
+```bash
+git clone https://github.com/your-username/career-code-server.git
+```
 
-## Deployment
-Instructions for deploying to a platform (e.g., Heroku, AWS):
-1. Build the project:
-   ```bash
-   npm run build  # If applicable
-   ```
-2. Deploy using:
-   ```bash
-   heroku push  # Example command
-   ```
+2. Navigate to the project folder:
 
-## Contributing
-Steps for contributing:
-1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit changes: `git commit -m "Add feature"`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request.
+```bash
+cd career-code-server
+```
+
+3. Install dependencies:
+
+```bash
+npm install
+```
+
+4. Start the server:
+
+```bash
+npm run start
+# or for development
+npm run dev
+```
+
+Server will run on `http://localhost:5000` by default.
+
+---
+
+## API Endpoints
+
+### JWT
+
+- `POST /jwt` – Generate JWT token and store in cookie.
+
+### Categories
+
+- `GET /categories` – Fetch all job categories.
+
+### Jobs
+
+- `GET /jobs` – Get all jobs (optional query by HR email).
+- `GET /jobs/:id` – Get job details by ID.
+- `POST /jobs` – Add a new job.
+- `PATCH /jobs/:id` – Update a job by ID.
+- `DELETE /job/:id` – Delete a job by ID.
+
+### Applications
+
+- `GET /applications` – Get applications (requires Firebase token).
+- `GET /applications/:id` – Get a single application by ID.
+- `GET /applications/job/:id` – Get applications for a specific job.
+- `POST /applications` – Add a new application.
+- `PATCH /applications/:id` – Update an application by ID.
+- `DELETE /applications/:id` – Delete an application by ID.
+
+---
+
+## Middleware
+
+- `verifyToken` – Checks for JWT token in cookies.
+- `verifyFirebaseToken` – Checks for Firebase token in request headers.
+
+---
+
+## Notes
+
+- Ensure Firebase service account key is base64 encoded in `.env`.
+- CORS is restricted to the frontend domains:  
+  `http://localhost:5173` and `https://p31-job-portal-client-8825a.web.app`.
+
+---
 
 ## License
-[Specify your license, e.g., MIT, Apache 2.0]
+
+This project is licensed under the MIT License.
+
+---
+
+## Author
+
+- **Shad** – [GitHub](https://github.com/shad910)
+
